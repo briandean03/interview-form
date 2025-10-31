@@ -128,13 +128,13 @@ const CandidateBooking: React.FC = () => {
 
       if (data) {
         setExistingAppointment(data)
+        
         const appointmentDateUTC = parseISO(data.appointment_time)
         const appointmentDateInSelectedTZ = toZonedTime(appointmentDateUTC, selectedTimezone)
         setSelectedDate(appointmentDateInSelectedTZ)
         setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
       } else {
         setExistingAppointment(null)
-        setSelectedDate(null)
         setSelectedTime('')
       }
       setIsEditMode(false)
