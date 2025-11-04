@@ -24,7 +24,7 @@ interface TimeSlot {
 interface Appointment {
   id: number
   candidate_id: string
-  appointment_time: string
+  appointment_time: string | null
   position_code?: string
   q_revision?: string
   created_at: string
@@ -59,6 +59,8 @@ const CandidateBooking: React.FC = () => {
   const [existingAppointment, setExistingAppointment] = useState<Appointment | null>(null)
   const [isEditMode, setIsEditMode] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteSuccess, setDeleteSuccess] = useState(false)
+
 
   const timeSlots: TimeSlot[] = [
     { time: '09:00', available: true },
@@ -231,8 +233,7 @@ const checkExistingAppointment = async () => {
     setSubmitting(true)
     setError('')
 
-    try {
-      // Instead of deleting, just clear the appointment time
+     try {
       const { error: clearError } = await supabase
         .from('hrta_cd00-03_appointment_info')
         .update({ appointment_time: null })
@@ -240,22 +241,23 @@ const checkExistingAppointment = async () => {
 
       if (clearError) throw clearError
 
-
-      setExistingAppointment(null)
+      setExistingAppointment(prev => prev ? { ...prev, appointment_time: null } : null
+      )
       setSelectedDate(null)
       setSelectedTime('')
       setShowDeleteConfirm(false)
+      
+      setDeleteSuccess(true)   // ✅ new flag
       setSuccess(true)
       setTimeout(() => {
         setSuccess(false)
+        setDeleteSuccess(false)
       }, 3000)
     } catch (error) {
       console.error('Error deleting appointment:', error)
       setError('Failed to delete appointment. Please try again.')
     } finally {
       setSubmitting(false)
-    }
-  }
 
 const handleCancelEdit = () => {
   if (existingAppointment && existingAppointment.appointment_time) {
@@ -359,24 +361,25 @@ const handleCancelEdit = () => {
 
         {success && (
             <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
-              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-              <div>
-                <p className="text-green-900 font-medium">
-                  {error === 'deleted'
-                    ? 'Appointment Removed Successfully!'
-                    : existingAppointment?.appointment_time
-                    ? 'Appointment Updated Successfully!'
-                    : 'Appointment Scheduled Successfully!'}
-                </p>
-                <p className="text-green-700 text-sm">
-                  {error === 'deleted'
-                    ? 'Your appointment has been cancelled.'
-                    : existingAppointment?.appointment_time
-                    ? 'Your interview has been updated.'
-                    : 'Your interview has been confirmed.'}
-                </p>
-              </div>
+            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <div>
+              <p className="text-green-900 font-medium">
+                {deleteSuccess
+                  ? 'Appointment Removed Successfully!'
+                  : existingAppointment?.appointment_time
+                  ? 'Appointment Updated Successfully!'
+                  : 'Appointment Scheduled Successfully!'}
+              </p>
+              <p className="text-green-700 text-sm">
+                {deleteSuccess
+                  ? 'Your appointment has been cancelled.'
+                  : existingAppointment?.appointment_time
+                  ? 'Your interview has been updated.'
+                  : 'Your interview has been confirmed.'}
+              </p>
             </div>
+          </div>
+
           )}
 
 
