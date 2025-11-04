@@ -241,8 +241,7 @@ const checkExistingAppointment = async () => {
 
       if (clearError) throw clearError
 
-      setExistingAppointment(prev => prev ? { ...prev, appointment_time: null } : null
-      )
+      setExistingAppointment(null)
       setSelectedDate(null)
       setSelectedTime('')
       setShowDeleteConfirm(false)
