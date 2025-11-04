@@ -184,15 +184,19 @@ const CandidateBooking: React.FC = () => {
 
         if (updateError) throw updateError
       } else {
-        const { error: insertError } = await supabase
-          .from('hrta_cd00-03_appointment_info')
-          .insert({
+       const { error: upsertError } = await supabase
+        .from('hrta_cd00-03_appointment_info')
+        .upsert(
+          {
             candidate_id: candidate.candidate_id,
             appointment_time: appointmentDateTime,
             position_code: candidate.position_code,
-          })
+          },
+          { onConflict: 'candidate_id' } // 👈 tells Supabase to update existing record
+        )
 
-        if (insertError) throw insertError
+      if (upsertError) throw upsertError
+
       }
 
       setSuccess(true)
@@ -521,12 +525,24 @@ const handleCancelEdit = () => {
 
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                   {timeSlots.map((slot) => {
-                    const isSlotDisabled = !slot.available || (existingAppointment && !isEditMode)
+                      const [hour, minute] = slot.time.split(':').map(Number)
+                      const now = new Date()
+
+                      // Build the datetime for this slot on the selected date
+                      const slotDateTime = new Date(selectedDate!)
+                      slotDateTime.setHours(hour, minute, 0, 0)
+
+                      // ❌ Disable past times if the selected date is today
+                      const isPast =
+                        isSameDay(selectedDate!, now) && isBefore(slotDateTime, now)
+
+                      const isSlotDisabled =
+                        !slot.available || isPast || (existingAppointment && !isEditMode)
                     return (
                       <button
                         key={slot.time}
                         onClick={() => setSelectedTime(slot.time)}
-                        disabled={isSlotDisabled}
+                        disabled={!!isSlotDisabled}
                         className={`
                           py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200
                           ${isSlotDisabled && selectedTime !== slot.time ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}
