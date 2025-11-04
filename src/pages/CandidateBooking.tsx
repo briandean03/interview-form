@@ -209,10 +209,14 @@ const checkExistingAppointment = async () => {
 
       setSuccess(true)
       setIsEditMode(false)
+      // brief delay to allow Supabase to commit before re-fetching
+      await new Promise(res => setTimeout(res, 300))
       await checkExistingAppointment()
+
       setTimeout(() => {
         setSuccess(false)
       }, 3000)
+
     } catch (error) {
       console.error('Error saving appointment:', error)
       setError('Failed to save appointment. Please try again.')
@@ -404,12 +408,21 @@ const handleCancelEdit = () => {
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                     <p className="text-sm font-medium text-blue-900 mb-2">Current Appointment</p>
-                    <p className="text-sm text-blue-800">
-                      {format(parseISO(existingAppointment.appointment_time), 'EEEE, MMMM d, yyyy')}
-                    </p>
-                    <p className="text-sm text-blue-800">
-                      {format(parseISO(existingAppointment.appointment_time), 'HH:mm')}
-                    </p>
+                    {existingAppointment?.appointment_time ? (
+                      <>
+                        <p className="text-sm text-blue-800">
+                          {format(parseISO(existingAppointment.appointment_time), 'EEEE, MMMM d, yyyy')}
+                        </p>
+                        <p className="text-sm text-blue-800">
+                          {format(parseISO(existingAppointment.appointment_time), 'HH:mm')}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-blue-800 italic text-gray-500">
+                        No appointment scheduled yet
+                      </p>
+                    )}
+
                   </div>
                   <div className="flex space-x-2">
                     <button
@@ -471,7 +484,7 @@ const handleCancelEdit = () => {
                     <button
                       key={index}
                       onClick={() => !isDisabled && setSelectedDate(day)}
-                      disabled={isDisabled}
+                      disabled={!!isDisabled}
                       className={`
                         aspect-square p-2 rounded-lg text-sm font-medium transition-all duration-200
                         ${!isCurrentMonth ? 'text-gray-300' : ''}
