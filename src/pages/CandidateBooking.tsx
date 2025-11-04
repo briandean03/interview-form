@@ -232,12 +232,14 @@ const checkExistingAppointment = async () => {
     setError('')
 
     try {
-      const { error: deleteError } = await supabase
+      // Instead of deleting, just clear the appointment time
+      const { error: clearError } = await supabase
         .from('hrta_cd00-03_appointment_info')
-        .delete()
+        .update({ appointment_time: null })
         .eq('id', existingAppointment.id)
 
-      if (deleteError) throw deleteError
+      if (clearError) throw clearError
+
 
       setExistingAppointment(null)
       setSelectedDate(null)
