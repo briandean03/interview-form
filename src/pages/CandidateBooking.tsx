@@ -358,18 +358,27 @@ const handleCancelEdit = () => {
         </div>
 
         {success && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-            <div>
-              <p className="text-green-900 font-medium">
-                {existingAppointment ? 'Appointment Updated Successfully!' : 'Appointment Scheduled Successfully!'}
-              </p>
-              <p className="text-green-700 text-sm">
-                {existingAppointment ? 'Your interview has been updated.' : 'Your interview has been confirmed.'}
-              </p>
+            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
+              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <div>
+                <p className="text-green-900 font-medium">
+                  {error === 'deleted'
+                    ? 'Appointment Removed Successfully!'
+                    : existingAppointment?.appointment_time
+                    ? 'Appointment Updated Successfully!'
+                    : 'Appointment Scheduled Successfully!'}
+                </p>
+                <p className="text-green-700 text-sm">
+                  {error === 'deleted'
+                    ? 'Your appointment has been cancelled.'
+                    : existingAppointment?.appointment_time
+                    ? 'Your interview has been updated.'
+                    : 'Your interview has been confirmed.'}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
 
         {error && (
           <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
