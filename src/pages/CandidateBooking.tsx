@@ -258,6 +258,9 @@ const checkExistingAppointment = async () => {
       setError('Failed to delete appointment. Please try again.')
     } finally {
       setSubmitting(false)
+    }
+  }
+  
 
 const handleCancelEdit = () => {
   if (existingAppointment && existingAppointment.appointment_time) {
