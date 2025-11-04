@@ -114,7 +114,7 @@ const CandidateBooking: React.FC = () => {
     }
   }
 
-  const checkExistingAppointment = async () => {
+const checkExistingAppointment = async () => {
   if (!candidate) return
 
   try {
@@ -126,27 +126,34 @@ const CandidateBooking: React.FC = () => {
 
     if (error) throw error
 
-    if (data) {
-      setExistingAppointment(data)
-
-      // ✅ only parse valid date strings
-      if (data.appointment_time) {
-        try {
-          const appointmentDateUTC = parseISO(data.appointment_time)
-          const appointmentDateInSelectedTZ = toZonedTime(appointmentDateUTC, selectedTimezone)
-          setSelectedDate(appointmentDateInSelectedTZ)
-          setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
-        } catch (err) {
-          console.warn('Invalid appointment_time format:', data.appointment_time)
-          setSelectedDate(null)
-          setSelectedTime('')
-        }
-      } else {
-        setSelectedDate(null)
-        setSelectedTime('')
-      }
-    } else {
+    // 🧠 CASE 1: No appointment record exists yet
+    if (!data) {
       setExistingAppointment(null)
+      setSelectedDate(null)
+      setSelectedTime('')
+      setIsEditMode(false)
+      return
+    }
+
+    // 🧠 CASE 2: Appointment exists but time is NULL (new record with no time yet)
+    if (!data.appointment_time) {
+      setExistingAppointment(data)
+      setSelectedDate(null)
+      setSelectedTime('')
+      setIsEditMode(true) // allow them to immediately choose a slot
+      return
+    }
+
+    // 🧠 CASE 3: Appointment exists and time is valid
+    setExistingAppointment(data)
+
+    try {
+      const appointmentDateUTC = parseISO(data.appointment_time)
+      const appointmentDateInSelectedTZ = toZonedTime(appointmentDateUTC, selectedTimezone)
+      setSelectedDate(appointmentDateInSelectedTZ)
+      setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
+    } catch (err) {
+      console.warn('Invalid appointment_time format:', data.appointment_time)
       setSelectedDate(null)
       setSelectedTime('')
     }
@@ -156,6 +163,7 @@ const CandidateBooking: React.FC = () => {
     console.error('Error checking existing appointment:', error)
   }
 }
+
 
 
   const handleSubmitAppointment = async () => {
