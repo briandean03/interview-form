@@ -115,33 +115,48 @@ const CandidateBooking: React.FC = () => {
   }
 
   const checkExistingAppointment = async () => {
-    if (!candidate) return
+  if (!candidate) return
 
-    try {
-      const { data, error } = await supabase
-        .from('hrta_cd00-03_appointment_info')
-        .select('*')
-        .eq('candidate_id', candidate.candidate_id)
-        .maybeSingle()
+  try {
+    const { data, error } = await supabase
+      .from('hrta_cd00-03_appointment_info')
+      .select('*')
+      .eq('candidate_id', candidate.candidate_id)
+      .maybeSingle()
 
-      if (error) throw error
+    if (error) throw error
 
-      if (data) {
-        setExistingAppointment(data)
-        
-        const appointmentDateUTC = parseISO(data.appointment_time)
-        const appointmentDateInSelectedTZ = toZonedTime(appointmentDateUTC, selectedTimezone)
-        setSelectedDate(appointmentDateInSelectedTZ)
-        setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
+    if (data) {
+      setExistingAppointment(data)
+
+      // ✅ only parse valid date strings
+      if (data.appointment_time) {
+        try {
+          const appointmentDateUTC = parseISO(data.appointment_time)
+          const appointmentDateInSelectedTZ = toZonedTime(appointmentDateUTC, selectedTimezone)
+          setSelectedDate(appointmentDateInSelectedTZ)
+          setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
+        } catch (err) {
+          console.warn('Invalid appointment_time format:', data.appointment_time)
+          setSelectedDate(null)
+          setSelectedTime('')
+        }
       } else {
-        setExistingAppointment(null)
+        setSelectedDate(null)
         setSelectedTime('')
       }
-      setIsEditMode(false)
-    } catch (error) {
-      console.error('Error checking existing appointment:', error)
+    } else {
+      setExistingAppointment(null)
+      setSelectedDate(null)
+      setSelectedTime('')
     }
+
+    setIsEditMode(false)
+  } catch (error) {
+    console.error('Error checking existing appointment:', error)
   }
+}
+
 
   const handleSubmitAppointment = async () => {
     if (!candidate || !selectedDate || !selectedTime) {
@@ -224,15 +239,25 @@ const CandidateBooking: React.FC = () => {
     }
   }
 
-  const handleCancelEdit = () => {
-    if (existingAppointment) {
+const handleCancelEdit = () => {
+  if (existingAppointment && existingAppointment.appointment_time) {
+    try {
       const appointmentDateUTC = parseISO(existingAppointment.appointment_time)
       const appointmentDateInSelectedTZ = toZonedTime(appointmentDateUTC, selectedTimezone)
       setSelectedDate(appointmentDateInSelectedTZ)
       setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
+    } catch (err) {
+      console.warn('Invalid appointment_time format:', existingAppointment.appointment_time)
+      setSelectedDate(null)
+      setSelectedTime('')
     }
-    setIsEditMode(false)
+  } else {
+    setSelectedDate(null)
+    setSelectedTime('')
   }
+  setIsEditMode(false)
+}
+
 
   const getDaysInMonth = () => {
     const monthStart = startOfMonth(currentMonth)

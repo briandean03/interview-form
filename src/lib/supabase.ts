@@ -7,6 +7,10 @@ let supabaseInstance: SupabaseClient | null = null
 const createSupabaseClient = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+    // --- Debug: verify environment variables ---
+  console.log('🔍 Supabase URL:', supabaseUrl)  
+  console.log('🔍 Supabase Key present:', !!supabaseAnonKey)
+
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Supabase environment variables are missing. Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
@@ -56,6 +60,7 @@ export const supabase = getSupabaseClient()
 export const isSupabaseConfigured = () => {
   const url = import.meta.env.VITE_SUPABASE_URL
   const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+  
   return Boolean(url && key && (url.includes('supabase.co') || url.includes('supabase.net')))
 }
 
