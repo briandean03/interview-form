@@ -14,6 +14,8 @@ interface Candidate {
   position_code: string
   status: string
   vote?: number
+  answer_vids_folder_id?: string // new column
+
 }
 
 interface TimeSlot {
@@ -106,7 +108,7 @@ const CandidateBooking: React.FC = () => {
   try {
     const { data, error } = await supabase
       .from('hrta_cd00-01_resume_extraction')
-      .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote')
+      .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote, answer_vids_folder_id')
       .eq('candidate_id', candidateId)
       .maybeSingle();
 
@@ -449,16 +451,17 @@ const handleCancelEdit = () => {
                         No appointment scheduled yet
                       </p>
                     )}
+              {/* ✅ QUESTION FOLDER BUTTON */}                  {candidate.candidate_id === '2288d763-18cf-4a3b-8da4-d783ee1ec3b8' && candidate.answer_vids_folder_id && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => window.open(candidate.answer_vids_folder_id, '_blank')}
+                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition"
+                      >
+                        View Folder
+                      </button>
+                    </div>
+                  )}
 
-                    {/* --- VIEW INTERVIEW QUESTIONS BUTTON --- */}
-                        {existingAppointment?.appointment_time && (
-                          <div className="mt-6 pt-4 border-t border-gray-200">
-                            <QuestionViewer
-                              candidate={candidate}
-                              appointmentTime={existingAppointment.appointment_time}
-                            />
-                          </div>
-                        )}
 
 
                   </div>
