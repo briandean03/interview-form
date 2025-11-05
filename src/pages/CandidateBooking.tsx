@@ -78,45 +78,54 @@ const CandidateBooking: React.FC = () => {
   ]
 
   useEffect(() => {
+      console.log("useEffect fired, candidateId =", candidateId);
+
     if (candidateId) {
-      fetchCandidate()
+      fetchCandidate();
     } else {
-      setLoading(false)
-      setError('No candidate ID provided in the URL')
+      setLoading(false);
+      setError('No candidate ID provided in the URL');
     }
-  }, [candidateId])
+  }, [candidateId]);
 
   useEffect(() => {
     if (candidate) {
-      checkExistingAppointment()
+      checkExistingAppointment();
     }
-  }, [candidate, selectedTimezone])
+  }, [candidate, selectedTimezone]);
+
 
   const fetchCandidate = async () => {
-    if (!candidateId) return
+  console.log("Candidate ID received:", candidateId);
 
-    try {
-      const { data, error } = await supabase
-        .from('hrta_cd00-01_resume_extraction')
-        .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote')
-        .eq('candidate_id', candidateId)
-        .maybeSingle()
-
-      if (error) throw error
-
-      if (!data) {
-        setError('Candidate not found')
-        return
-      }
-
-      setCandidate(data)
-    } catch (error) {
-      console.error('Error fetching candidate:', error)
-      setError('Failed to load candidate information')
-    } finally {
-      setLoading(false)
-    }
+  if (!candidateId) {
+    console.log("No candidate ID found in URL");
+    return;
   }
+
+  try {
+    const { data, error } = await supabase
+      .from('hrta_cd00-01_resume_extraction')
+      .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote')
+      .eq('candidate_id', candidateId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      setError('Candidate not found');
+      return;
+    }
+
+    setCandidate(data);
+  } catch (error) {
+    console.error('Error fetching candidate:', error);
+    setError('Failed to load candidate information');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 const checkExistingAppointment = async () => {
   if (!candidate) return
@@ -736,7 +745,7 @@ const QuestionViewer: React.FC<{
   const start = new Date(appointmentTime)
   const end = new Date(start.getTime() + 30 * 60 * 1000)
   // const isWithinTime = now >= start && now <= end
-  const isWithinTime = true // TEMPORARILY ALWAYS TRUE FOR DEMO PURPOSES
+  const isWithinTime = true
   
 
   return (
