@@ -735,7 +735,9 @@ const QuestionViewer: React.FC<{
   const now = new Date()
   const start = new Date(appointmentTime)
   const end = new Date(start.getTime() + 30 * 60 * 1000)
-  const isWithinTime = now >= start && now <= end
+  // const isWithinTime = now >= start && now <= end
+  const isWithinTime = true // TEMPORARILY ALWAYS TRUE FOR DEMO PURPOSES
+  
 
   return (
     <div className="flex flex-col items-start">
