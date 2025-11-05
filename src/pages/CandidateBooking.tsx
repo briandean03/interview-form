@@ -61,6 +61,8 @@ const CandidateBooking: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteSuccess, setDeleteSuccess] = useState(false)
 
+  
+
 
   const timeSlots: TimeSlot[] = [
     { time: '09:00', available: true },
@@ -439,6 +441,17 @@ const handleCancelEdit = () => {
                       </p>
                     )}
 
+                    {/* --- VIEW INTERVIEW QUESTIONS BUTTON --- */}
+                        {existingAppointment?.appointment_time && (
+                          <div className="mt-6 pt-4 border-t border-gray-200">
+                            <QuestionViewer
+                              candidate={candidate}
+                              appointmentTime={existingAppointment.appointment_time}
+                            />
+                          </div>
+                        )}
+
+
                   </div>
                   <div className="flex space-x-2">
                     <button
@@ -684,6 +697,95 @@ const handleCancelEdit = () => {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+const QuestionViewer: React.FC<{
+  candidate: Candidate
+  appointmentTime: string
+}> = ({ candidate, appointmentTime }) => {
+  const [questions, setQuestions] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [error, setError] = useState<string>('')
+
+  const handleViewQuestions = async () => {
+    setShowModal(true)
+    setLoading(true)
+    setError('')
+
+    try {
+      const { data, error } = await supabase
+        .from('hrta_sd00-02_question_vids')
+        .select('question_vid_index, question_vid_context')
+        .eq('position_code', candidate.position_code)
+        .order('question_vid_index', { ascending: true })
+
+      if (error) throw error
+      setQuestions(data || [])
+    } catch (err) {
+      console.error('Error fetching questions:', err)
+      setError('Failed to load questions.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ✅ Determine if current time is within 30-minute interview window
+  const now = new Date()
+  const start = new Date(appointmentTime)
+  const end = new Date(start.getTime() + 30 * 60 * 1000)
+  const isWithinTime = now >= start && now <= end
+
+  return (
+    <div className="flex flex-col items-start">
+      <button
+        onClick={handleViewQuestions}
+        disabled={!isWithinTime}
+        className={`px-4 py-2 rounded-lg font-medium ${
+          isWithinTime
+            ? 'bg-blue-600 text-white hover:bg-blue-700 transition'
+            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+        }`}
+      >
+        {isWithinTime ? 'View Interview Questions' : 'Questions available during interview time'}
+      </button>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl mx-4 max-h-[80vh] overflow-y-auto relative">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+              Interview Questions ({candidate.position_code})
+            </h3>
+
+            {loading && <p className="text-gray-600">Loading questions...</p>}
+            {error && <p className="text-red-600">{error}</p>}
+
+            {!loading && questions.length > 0 && (
+              <ul className="space-y-3">
+                {questions.map((q) => (
+                  <li
+                    key={q.question_vid_index}
+                    className="border border-gray-200 rounded-lg p-3 text-gray-800 bg-gray-50"
+                  >
+                    <strong>Q{q.question_vid_index}:</strong> {q.question_vid_context}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {!loading && !error && questions.length === 0 && (
+              <p className="text-gray-600 italic">No questions found for this position.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
