@@ -242,7 +242,7 @@ const checkExistingAppointment = async () => {
   }
 
   const handleDeleteAppointment = async () => {
-    if (!existingAppointment) return
+    if (!existingAppointment || !candidate) return
 
     setSubmitting(true)
     setError('')
@@ -251,7 +251,7 @@ const checkExistingAppointment = async () => {
       const { error: deleteError } = await supabase
         .from('hrta_cd00-03_appointment_info')
         .delete()
-        .eq('id', existingAppointment.id)
+        .eq('candidate_id', candidate.candidate_id)
 
       if (deleteError) throw deleteError
 
