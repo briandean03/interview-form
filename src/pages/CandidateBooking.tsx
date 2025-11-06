@@ -14,8 +14,6 @@ interface Candidate {
   position_code: string
   status: string
   vote?: number
-  answer_vids_folder_id?: string // new column
-
 }
 
 interface TimeSlot {
@@ -45,93 +43,6 @@ const TIMEZONES = [
   { value: 'Australia/Sydney', label: 'AEDT (Australian Eastern Time)', offset: '+11:00' },
 ]
 
-const AdminFolderViewer: React.FC = () => {
-  const [folders, setFolders] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-  const [showModal, setShowModal] = useState(false)
-  const [error, setError] = useState<string>('')
-
-  const handleViewAllFolders = async () => {
-    setShowModal(true)
-    setLoading(true)
-    setError('')
-
-    try {
-      const { data, error } = await supabase
-        .from('hrta_cd00-01_resume_extraction')
-        .select('candidate_id, first_name, last_name, position_code, answer_vids_folder_id')
-        .order('first_name', { ascending: true })
-
-      if (error) throw error
-      setFolders(data || [])
-    } catch (err) {
-      console.error('Error fetching folders:', err)
-      setError('Failed to load folder data.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div>
-      <button
-        onClick={handleViewAllFolders}
-        className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition"
-      >
-        View All Candidate Folders
-      </button>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-3xl mx-4 max-h-[80vh] overflow-y-auto relative">
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-            >
-              ✕
-            </button>
-
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">All Candidate Answer Folders</h3>
-
-            {loading && <p className="text-gray-600">Loading folders...</p>}
-            {error && <p className="text-red-600">{error}</p>}
-
-            {!loading && !error && folders.length > 0 && (
-              <ul className="divide-y divide-gray-200">
-                {folders.map((c) => (
-                  <li key={c.candidate_id} className="py-3 flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {c.first_name} {c.last_name}
-                      </p>
-                      <p className="text-sm text-gray-500">{c.position_code}</p>
-                    </div>
-                    {c.answer_vids_folder_id ? (
-                      <button
-                        onClick={() => window.open(c.answer_vids_folder_id, '_blank')}
-                        className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 text-sm"
-                      >
-                        Open Folder
-                      </button>
-                    ) : (
-                      <span className="text-gray-400 text-sm italic">No folder</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {!loading && !error && folders.length === 0 && (
-              <p className="text-gray-600 italic">No candidates found.</p>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-
 const CandidateBooking: React.FC = () => {
   const [searchParams] = useSearchParams()
   const candidateId = searchParams.get('candidate_id')
@@ -150,8 +61,6 @@ const CandidateBooking: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleteSuccess, setDeleteSuccess] = useState(false)
 
-  
-
 
   const timeSlots: TimeSlot[] = [
     { time: '09:00', available: true },
@@ -167,54 +76,45 @@ const CandidateBooking: React.FC = () => {
   ]
 
   useEffect(() => {
-      console.log("useEffect fired, candidateId =", candidateId);
-
     if (candidateId) {
-      fetchCandidate();
+      fetchCandidate()
     } else {
-      setLoading(false);
-      setError('No candidate ID provided in the URL');
+      setLoading(false)
+      setError('No candidate ID provided in the URL')
     }
-  }, [candidateId]);
+  }, [candidateId])
 
   useEffect(() => {
     if (candidate) {
-      checkExistingAppointment();
+      checkExistingAppointment()
     }
-  }, [candidate, selectedTimezone]);
-
+  }, [candidate, selectedTimezone])
 
   const fetchCandidate = async () => {
-  console.log("Candidate ID received:", candidateId);
+    if (!candidateId) return
 
-  if (!candidateId) {
-    console.log("No candidate ID found in URL");
-    return;
-  }
+    try {
+      const { data, error } = await supabase
+        .from('hrta_cd00-01_resume_extraction')
+        .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote')
+        .eq('candidate_id', candidateId)
+        .maybeSingle()
 
-  try {
-    const { data, error } = await supabase
-      .from('hrta_cd00-01_resume_extraction')
-      .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote, answer_vids_folder_id')
-      .eq('candidate_id', candidateId)
-      .maybeSingle();
+      if (error) throw error
 
-    if (error) throw error;
+      if (!data) {
+        setError('Candidate not found')
+        return
+      }
 
-    if (!data) {
-      setError('Candidate not found');
-      return;
+      setCandidate(data)
+    } catch (error) {
+      console.error('Error fetching candidate:', error)
+      setError('Failed to load candidate information')
+    } finally {
+      setLoading(false)
     }
-
-    setCandidate(data);
-  } catch (error) {
-    console.error('Error fetching candidate:', error);
-    setError('Failed to load candidate information');
-  } finally {
-    setLoading(false);
   }
-};
-
 
 const checkExistingAppointment = async () => {
   if (!candidate) return
@@ -519,12 +419,6 @@ const handleCancelEdit = () => {
                   <span className="text-gray-700">{candidate.position_code}</span>
                 </div>
               </div>
-              
-              {candidate.candidate_id === '2288d763-18cf-4a3b-8da4-d783ee1ec3b8' && (
-                    <div className="mt-4">
-                      <AdminFolderViewer />
-                    </div>
-                  )}
 
               {existingAppointment && !isEditMode && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
@@ -544,21 +438,6 @@ const handleCancelEdit = () => {
                         No appointment scheduled yet
                       </p>
                     )}
-
-                    
-
-              {/* ✅ QUESTION FOLDER BUTTON */}                  {candidate.candidate_id === '2288d763-18cf-4a3b-8da4-d783ee1ec3b8' && candidate.answer_vids_folder_id && (
-                    <div className="mt-4">
-                      <button
-                        onClick={() => window.open(candidate.answer_vids_folder_id, '_blank')}
-                        className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition"
-                      >
-                        View Folder
-                      </button>
-                    </div>
-                  )}
-
-
 
                   </div>
                   <div className="flex space-x-2">
@@ -808,6 +687,5 @@ const handleCancelEdit = () => {
     </div>
   )
 }
-
 
 export default CandidateBooking
