@@ -583,9 +583,11 @@ const handleCancelEdit = () => {
                       const slotDateTime = new Date(selectedDate!)
                       slotDateTime.setHours(hour, minute, 0, 0)
 
-                      // ❌ Disable past times if the selected date is today
+                      //Add 2 hour buffer from current time
+                      const minBookTime = new Date(now.getTime() + 2 * 60 * 60 * 1000)
+                      //  Disable past times if the selected date is today
                       const isPast =
-                        isSameDay(selectedDate!, now) && isBefore(slotDateTime, now)
+                        isSameDay(selectedDate!, now) && isBefore(slotDateTime, minBookTime)
 
                       const isSlotDisabled =
                         !slot.available || isPast || (existingAppointment && !isEditMode)
