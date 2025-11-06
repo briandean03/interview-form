@@ -96,7 +96,7 @@ const CandidateBooking: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('hrta_cd00-01_resume_extraction')
-        .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote')
+        .select('candidate_id, first_name, last_name, email, mobile_num, position_code, status, vote, date_interviewed')
         .eq('candidate_id', candidateId)
         .maybeSingle()
 
@@ -106,6 +106,20 @@ const CandidateBooking: React.FC = () => {
         setError('Candidate not found')
         return
       }
+
+      // Prevent access if interview already happened
+      if (data.date_interviewed) {
+        const interviewDate = new Date(data.date_interviewed)
+        const now = new Date()
+
+        if (interviewDate <= now) {
+          setError('This interview link is no longer active.')
+          setCandidate(null)
+          setLoading(false)
+          return
+        }
+      }
+
 
       setCandidate(data)
     } catch (error) {
@@ -202,7 +216,7 @@ const checkExistingAppointment = async () => {
             appointment_time: appointmentDateTime,
             position_code: candidate.position_code,
           },
-          { onConflict: 'candidate_id' } // 👈 tells Supabase to update existing record
+          { onConflict: 'candidate_id' } // tells Supabase to update existing record
         )
 
       if (upsertError) throw upsertError
