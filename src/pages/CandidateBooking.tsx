@@ -198,13 +198,15 @@ const checkExistingAppointment = async () => {
       const appointmentDateTime = utcDateTime.toISOString()
 
       if (existingAppointment) {
-          const { error: deleteError } = await supabase
-            .from('hrta_cd00-03_appointment_info')
-            .delete()
-            .eq('id', existingAppointment.id)
+        const { error: updateError } = await supabase
+          .from('hrta_cd00-03_appointment_info')
+          .update({
+            appointment_time: appointmentDateTime,
+            position_code: candidate.position_code,
+          })
+          .eq('id', existingAppointment.id)
 
-          if (deleteError) throw deleteError
-
+        if (updateError) throw updateError
       } else {
        const { error: upsertError } = await supabase
         .from('hrta_cd00-03_appointment_info')
@@ -246,12 +248,12 @@ const checkExistingAppointment = async () => {
     setError('')
 
      try {
-      const { error: clearError } = await supabase
+      const { error: deleteError } = await supabase
         .from('hrta_cd00-03_appointment_info')
-        .update({ appointment_time: null })
+        .delete()
         .eq('id', existingAppointment.id)
 
-      if (clearError) throw clearError
+      if (deleteError) throw deleteError
 
       setExistingAppointment(null)
       setSelectedDate(null)
