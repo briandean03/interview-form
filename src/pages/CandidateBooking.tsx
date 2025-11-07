@@ -363,8 +363,8 @@ const handleCancelEdit = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <div className="w-full max-w-3xl sm:max-w-4xl mx-auto px-3 sm:px-5 md:px-8 py-6 sm:py-8">
         <div className="mb-8">
           <div className="flex items-center space-x-3">
             <Calendar className="h-8 w-8 text-blue-600" />
@@ -406,7 +406,7 @@ const handleCancelEdit = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 w-full overflow-hidden">
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
@@ -497,7 +497,7 @@ const handleCancelEdit = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-[2px] sm:gap-1 text-[11px] sm:text-sm w-full max-w-full overflow-hidden">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
                   <div key={day} className="text-center text-sm font-medium text-gray-600 py-2">
                     {day}
@@ -574,7 +574,7 @@ const handleCancelEdit = () => {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full overflow-hidden">
                   {timeSlots.map((slot) => {
                       const [hour, minute] = slot.time.split(':').map(Number)
                       const now = new Date()
