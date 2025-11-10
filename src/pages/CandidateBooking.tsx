@@ -108,17 +108,17 @@ const CandidateBooking: React.FC = () => {
       }
 
       // Prevent access if interview already happened
-      if (data.date_interviewed) {
-        const interviewDate = new Date(data.date_interviewed)
-        const now = new Date()
+    //  if (data.date_interviewed) {
+     //   const interviewDate = new Date(data.date_interviewed)
+      //  const now = new Date()
 
-        if (interviewDate <= now) {
-          setError('This interview link is no longer active.')
-          setCandidate(null)
-          setLoading(false)
-          return
-        }
-      }
+      //  if (interviewDate <= now) {
+       //   setError('This interview link is no longer active.')
+       //   setCandidate(null)
+       //   setLoading(false)
+       //   return
+      //  }
+     // }
 
 
       setCandidate(data)
