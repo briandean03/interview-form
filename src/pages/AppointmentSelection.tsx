@@ -250,11 +250,27 @@ const AppointmentSelection: React.FC = () => {
     return `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim() || 'Unknown Candidate'
   }
 
-  const isDateDisabled = (date: Date) => {
-    const today = startOfDay(new Date())
-    const maxDate = addDays(today, 14)
-    return isBefore(date, today) || isAfter(date, maxDate) || date.getDay() === 0 || date.getDay() === 6
-  }
+const isDateDisabled = (date: Date) => {
+  const today = startOfDay(new Date());
+  const maxDate = addDays(today, 14);
+
+  // CUT-OFF: Disable booking after 12 December 2025
+  // Month is 0-indexed → 11 = December
+  const cutoff = new Date(2025, 11, 12);
+
+  const day = startOfDay(date);
+
+  return (
+    isBefore(day, today) ||       // No past dates
+    isAfter(day, maxDate) ||      // 14-day window limit
+    isAfter(day, cutoff) ||       // ❌ No booking after Dec 12
+    day.getDay() === 0 ||         // Sunday disabled
+    day.getDay() === 6            // Saturday disabled
+  );
+};
+
+
+
 
   if (loading) {
     return (

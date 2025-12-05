@@ -324,11 +324,24 @@ const handleCancelEdit = () => {
     return `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim() || 'Unknown Candidate'
   }
 
-  const isDateDisabled = (date: Date) => {
-    const today = startOfDay(new Date())
-    const maxDate = addDays(today, 14)
-    return isBefore(date, today) || isAfter(date, maxDate) || date.getDay() === 0 || date.getDay() === 6
-  }
+ const isDateDisabled = (date: Date) => {
+  const today = startOfDay(new Date());
+  const maxDate = addDays(today, 14);
+
+  // ❌ No bookings allowed after 12 December 2025
+  const cutoff = startOfDay(new Date(2025, 11, 12)); // December = 11 (0-indexed)
+
+  const day = startOfDay(date);
+
+  return (
+    isBefore(day, today) ||   // No past dates
+    isAfter(day, maxDate) ||  // 14-day limit
+    isAfter(day, cutoff) ||   // ❌ Block after Dec 12
+    day.getDay() === 0 ||     // Sunday
+    day.getDay() === 6        // Saturday
+  );
+};
+
 
   if (loading) {
     return (
