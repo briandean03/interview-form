@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { format, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, parseISO, isToday, isBefore, startOfDay, isAfter } from 'date-fns'
 import { formatInTimeZone, toZonedTime, fromZonedTime } from 'date-fns-tz'
 import { Calendar, Clock, ChevronLeft, ChevronRight, User, Mail, Phone, MapPin, Globe, CheckCircle2, AlertCircle, Edit2, Trash2, X } from 'lucide-react'
+import { addMonths } from 'date-fns'
+
 
 interface Candidate {
   candidate_id: string
@@ -239,12 +241,13 @@ const AppointmentSelection: React.FC = () => {
   }
 
   const nextMonth = () => {
-    setCurrentMonth(addDays(currentMonth, 30))
-  }
+  setCurrentMonth(addMonths(currentMonth, 1))
+}
 
-  const previousMonth = () => {
-    setCurrentMonth(addDays(currentMonth, -30))
-  }
+const previousMonth = () => {
+  setCurrentMonth(addMonths(currentMonth, -1))
+}
+
 
   const getCandidateName = (candidate: Candidate) => {
     return `${candidate.first_name || ''} ${candidate.last_name || ''}`.trim() || 'Unknown Candidate'
@@ -252,22 +255,15 @@ const AppointmentSelection: React.FC = () => {
 
 const isDateDisabled = (date: Date) => {
   const today = startOfDay(new Date());
-  const maxDate = addDays(today, 14);
-
-  // CUT-OFF: Disable booking after 12 December 2025
-  // Month is 0-indexed → 11 = December
-  const cutoff = new Date(2025, 11, 12);
-
   const day = startOfDay(date);
 
   return (
-    isBefore(day, today) ||       // No past dates
-    isAfter(day, maxDate) ||      // 14-day window limit
-    isAfter(day, cutoff) ||       // ❌ No booking after Dec 12
-    day.getDay() === 0 ||         // Sunday disabled
-    day.getDay() === 6            // Saturday disabled
+    isBefore(day, today) ||   // No past dates
+    day.getDay() === 0 ||     // Sunday ❌
+    day.getDay() === 6        // Saturday ❌
   );
 };
+
 
 
 
