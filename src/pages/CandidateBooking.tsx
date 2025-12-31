@@ -328,7 +328,8 @@ const handleCancelEdit = () => {
   const isDateDisabled = (date: Date) => {
     const today = startOfDay(new Date())
     const maxDate = addDays(today, 14)
-    return isBefore(date, today) || isAfter(date, maxDate) || date.getDay() === 0 || date.getDay() === 6
+    const isJanuaryFirst = date.getMonth() === 0 && date.getDate() === 1
+    return isBefore(date, today) || isAfter(date, maxDate) || date.getDay() === 0 || date.getDay() === 6 || isJanuaryFirst
   }
 
   if (loading) {
