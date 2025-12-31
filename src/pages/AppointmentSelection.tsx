@@ -39,6 +39,7 @@ const TIMEZONES = [
   { value: 'Europe/London', label: 'GMT (London)', offset: '+00:00' },
   { value: 'Europe/Paris', label: 'CET (Central European Time)', offset: '+01:00' },
   { value: 'Asia/Dubai', label: 'GST (Gulf Standard Time)', offset: '+04:00' },
+  { value: 'Asia/Kolkata', label: 'IST (Indian Standard Time)', offset: '+05:30' },
   { value: 'Asia/Singapore', label: 'SGT (Singapore Time)', offset: '+08:00' },
   { value: 'Asia/Tokyo', label: 'JST (Japan Standard Time)', offset: '+09:00' },
   { value: 'Australia/Sydney', label: 'AEDT (Australian Eastern Time)', offset: '+11:00' },
@@ -80,7 +81,7 @@ const AppointmentSelection: React.FC = () => {
     if (selectedCandidate) {
       checkExistingAppointment()
     }
-  }, [selectedCandidate, selectedTimezone])
+  }, [selectedCandidate])
 
   const fetchCandidates = async () => {
     try {
