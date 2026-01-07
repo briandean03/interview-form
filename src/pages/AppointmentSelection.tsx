@@ -60,18 +60,29 @@ const AppointmentSelection: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const timeSlots: TimeSlot[] = [
-    { time: '09:00', available: true },
-    { time: '10:00', available: true },
-    { time: '11:00', available: true },
-    { time: '12:00', available: true },
-    { time: '13:00', available: true },
-    { time: '14:00', available: true },
-    { time: '15:00', available: true },
-    { time: '16:00', available: true },
-    { time: '17:00', available: true },
-    { time: '18:00', available: true },
-  ]
+  // Generate time slots based on Dubai working hours (9 AM - 6 PM GST) converted to selected timezone
+  const getTimeSlotsForTimezone = (): TimeSlot[] => {
+    const slots: TimeSlot[] = []
+    const today = new Date()
+    const dubaiTimezone = 'Asia/Dubai'
+
+    // Dubai working hours: 9 AM to 6 PM
+    for (let hour = 9; hour <= 18; hour++) {
+      // Create a date in Dubai timezone
+      const dubaiTimeString = `${format(today, 'yyyy-MM-dd')}T${hour.toString().padStart(2, '0')}:00:00`
+      const dubaiTime = fromZonedTime(dubaiTimeString, dubaiTimezone)
+
+      // Convert to selected timezone
+      const localTime = toZonedTime(dubaiTime, selectedTimezone)
+      const timeString = format(localTime, 'HH:mm')
+
+      slots.push({ time: timeString, available: true })
+    }
+
+    return slots
+  }
+
+  const timeSlots = getTimeSlotsForTimezone()
 
   useEffect(() => {
     fetchCandidates()
@@ -119,8 +130,16 @@ const AppointmentSelection: React.FC = () => {
 
       if (data) {
         setExistingAppointment(data)
+        // Convert from UTC to Dubai time first, then to selected timezone
         const appointmentDateUTC = parseISO(data.appointment_time)
-        const appointmentDateInSelectedTZ = toZonedTime(appointmentDateUTC, selectedTimezone)
+        const dubaiTimezone = 'Asia/Dubai'
+        const appointmentDateInDubai = toZonedTime(appointmentDateUTC, dubaiTimezone)
+
+        // Now convert Dubai time to selected timezone for display
+        const dubaiTimeString = format(appointmentDateInDubai, "yyyy-MM-dd'T'HH:mm:ss")
+        const dubaiTimeAsUTC = fromZonedTime(dubaiTimeString, dubaiTimezone)
+        const appointmentDateInSelectedTZ = toZonedTime(dubaiTimeAsUTC, selectedTimezone)
+
         setSelectedDate(appointmentDateInSelectedTZ)
         setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
       } else {
@@ -144,9 +163,16 @@ const AppointmentSelection: React.FC = () => {
     setError('')
 
     try {
+      // Convert selected time from user's timezone to Dubai time, then to UTC
       const dateTimeString = `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}:00`
-      const localDateTime = new Date(dateTimeString)
-      const utcDateTime = fromZonedTime(localDateTime, selectedTimezone)
+      const selectedTZDateTime = fromZonedTime(dateTimeString, selectedTimezone)
+
+      // Convert to Dubai timezone
+      const dubaiTimezone = 'Asia/Dubai'
+      const dubaiDateTime = toZonedTime(selectedTZDateTime, dubaiTimezone)
+
+      // Convert Dubai time to UTC for storage
+      const utcDateTime = fromZonedTime(format(dubaiDateTime, "yyyy-MM-dd'T'HH:mm:ss"), dubaiTimezone)
       const appointmentDateTime = utcDateTime.toISOString()
 
       if (existingAppointment) {
@@ -155,6 +181,8 @@ const AppointmentSelection: React.FC = () => {
           .update({
             appointment_time: appointmentDateTime,
             position_code: selectedCandidate.position_code,
+            notification_sent_at: null,
+            reminder_sent_at: null,
           })
           .eq('id', existingAppointment.id)
 
@@ -217,9 +245,18 @@ const AppointmentSelection: React.FC = () => {
 
   const handleCancelEdit = () => {
     if (existingAppointment) {
-      const appointmentDate = parseISO(existingAppointment.appointment_time)
-      setSelectedDate(appointmentDate)
-      setSelectedTime(format(appointmentDate, 'HH:mm'))
+      // Convert from UTC to Dubai time first, then to selected timezone
+      const appointmentDateUTC = parseISO(existingAppointment.appointment_time)
+      const dubaiTimezone = 'Asia/Dubai'
+      const appointmentDateInDubai = toZonedTime(appointmentDateUTC, dubaiTimezone)
+
+      // Now convert Dubai time to selected timezone for display
+      const dubaiTimeString = format(appointmentDateInDubai, "yyyy-MM-dd'T'HH:mm:ss")
+      const dubaiTimeAsUTC = fromZonedTime(dubaiTimeString, dubaiTimezone)
+      const appointmentDateInSelectedTZ = toZonedTime(dubaiTimeAsUTC, selectedTimezone)
+
+      setSelectedDate(appointmentDateInSelectedTZ)
+      setSelectedTime(format(appointmentDateInSelectedTZ, 'HH:mm'))
     }
     setIsEditMode(false)
   }
