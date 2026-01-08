@@ -38,6 +38,7 @@ const TIMEZONES = [
   { value: 'America/Los_Angeles', label: 'PST (Pacific Standard Time)', offset: '-08:00' },
   { value: 'Europe/London', label: 'GMT (London)', offset: '+00:00' },
   { value: 'Europe/Paris', label: 'CET (Central European Time)', offset: '+01:00' },
+  { value: 'Asia/Riyadh', label: 'AST (Arabian Standard Time)', offset: '+03:00' },
   { value: 'Asia/Dubai', label: 'GST (Gulf Standard Time)', offset: '+04:00' },
   { value: 'Asia/Kolkata', label: 'IST (Indian Standard Time)', offset: '+05:30' },
   { value: 'Asia/Singapore', label: 'SGT (Singapore Time)', offset: '+08:00' },
